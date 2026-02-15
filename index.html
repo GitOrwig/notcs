@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Counter-Strike Too</title>
+  <script>
+    // Global error trap — catches module load failures and event handler errors
+    window.addEventListener('error', function(e) {
+      document.getElementById('err-overlay').style.display = 'block';
+      document.getElementById('err-msg').textContent = (e.error?.stack || e.message || String(e));
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      document.getElementById('err-overlay').style.display = 'block';
+      document.getElementById('err-msg').textContent = String(e.reason?.stack || e.reason);
+    });
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -538,6 +549,13 @@
     <div class="subtitle">A TACTICAL SHOOTER</div>
     <button class="menu-btn" id="btn-competitive">COMPETITIVE (5v5)</button>
     <button class="menu-btn" id="btn-deathmatch">DEATHMATCH</button>
+  </div>
+
+  <!-- Error overlay: shown by global error trap above -->
+  <div id="err-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#111;z-index:9999;padding:40px;color:#ff4444;font-family:monospace;overflow:auto;">
+    <h2 style="color:#ff6666;margin-bottom:16px">JS Error — game failed to start:</h2>
+    <pre id="err-msg" style="white-space:pre-wrap;font-size:13px"></pre>
+    <br><button onclick="location.reload()" style="padding:10px 20px;background:#333;color:#fff;border:1px solid #555;cursor:pointer;font-family:monospace">Reload</button>
   </div>
 
   <script type="module" src="/src/main.js"></script>

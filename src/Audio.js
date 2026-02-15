@@ -7,18 +7,27 @@ export class Audio {
   }
 
   _init() {
-    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.value = 0.6;
-    this.masterGain.connect(this.ctx.destination);
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) throw new Error('AudioContext not supported');
+      this.ctx = new Ctx();
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.value = 0.6;
+      this.masterGain.connect(this.ctx.destination);
+    } catch (e) {
+      console.warn('Audio disabled:', e.message);
+      this.ctx = null;
+    }
   }
 
   resume() {
+    if (!this.ctx) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
   }
 
   // ── Utility ──────────────────────────────────────────────
   _noise(duration, freq = null, type = 'white') {
+    if (!this.ctx) return null;
     const bufSize = this.ctx.sampleRate * duration;
     const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
     const data = buf.getChannelData(0);
@@ -27,6 +36,8 @@ export class Audio {
     src.buffer = buf;
     return src;
   }
+
+  get _ok() { return !!this.ctx; }
 
   _osc(type, freq, duration, startTime) {
     const osc = this.ctx.createOscillator();
@@ -46,6 +57,7 @@ export class Audio {
 
   // ── Weapon sounds ─────────────────────────────────────────
   playGunshot(weaponType = 'rifle') {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
 
@@ -85,6 +97,7 @@ export class Audio {
   }
 
   playReload(clipType = 'rifle') {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     // Mag out click
@@ -94,6 +107,7 @@ export class Audio {
   }
 
   _clickSound(t, freq) {
+    if (!this._ok) return;
     const osc = this.ctx.createOscillator();
     osc.type = 'square';
     osc.frequency.setValueAtTime(freq, t);
@@ -107,12 +121,14 @@ export class Audio {
   }
 
   playEmptyClick() {
+    if (!this._ok) return;
     this.resume();
     this._clickSound(this.ctx.currentTime, 400);
   }
 
   // ── Footsteps ─────────────────────────────────────────────
   playFootstep(surface = 'concrete') {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const noise = this._noise(0.12);
@@ -131,6 +147,7 @@ export class Audio {
 
   // ── Grenade ───────────────────────────────────────────────
   playGrenadeBounce() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -147,6 +164,7 @@ export class Audio {
   }
 
   playExplosion() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
 
@@ -181,6 +199,7 @@ export class Audio {
 
   // ── Flash ringing ──────────────────────────────────────────
   playFlashRing(intensity = 1.0) {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const duration = 2.5 * intensity;
@@ -204,6 +223,7 @@ export class Audio {
 
   // ── Bomb ──────────────────────────────────────────────────
   playBombBeep(interval = 1.0) {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -220,6 +240,7 @@ export class Audio {
   }
 
   playBombPlant() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     [400, 500, 650].forEach((f, i) => {
@@ -228,6 +249,7 @@ export class Audio {
   }
 
   playBombDefuse() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     [650, 500, 400, 350].forEach((f, i) => {
@@ -236,6 +258,7 @@ export class Audio {
   }
 
   playBombExplode() {
+    if (!this._ok) return;
     this.playExplosion();
     // Extra low rumble
     const t = this.ctx.currentTime + 0.1;
@@ -254,6 +277,7 @@ export class Audio {
 
   // ── UI / Stings ───────────────────────────────────────────
   playRoundWin() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     [[523, 0], [659, 0.15], [784, 0.3], [1047, 0.5]].forEach(([f, dt]) => {
@@ -269,6 +293,7 @@ export class Audio {
   }
 
   playRoundLose() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     [[500, 0], [400, 0.2], [300, 0.45]].forEach(([f, dt]) => {
@@ -284,6 +309,7 @@ export class Audio {
   }
 
   playDeath() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
@@ -298,6 +324,7 @@ export class Audio {
   }
 
   playHurt() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const noise = this._noise(0.08);
@@ -312,6 +339,7 @@ export class Audio {
   }
 
   playMolotovIgnite() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const noise = this._noise(0.4);
@@ -327,6 +355,7 @@ export class Audio {
   }
 
   playSmokeDeply() {
+    if (!this._ok) return;
     this.resume();
     const t = this.ctx.currentTime;
     const noise = this._noise(0.3);
